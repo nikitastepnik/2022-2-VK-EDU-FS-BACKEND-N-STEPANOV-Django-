@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from src.exceptions.custom_exceptions import InvalidCountInputArgs, InvalidTypesInputArgs, \
-    InvalidRangeInputArgs, InvalidGameCell
+from homework1.src.exceptions.custom_exceptions import InvalidCountInputArgs, InvalidTypesInputArgs, \
+    InvalidRangeInputArgs, InvalidGameCell, InvalidDimensionRange, InvalidGameType
 from src.main_game.tic_tag_game import TicTacGame
 
 
@@ -41,6 +41,34 @@ class TestTicTagGame(unittest.TestCase):
 
             with self.subTest(elem=elem):
                 self.assertRaises(InvalidGameCell, lambda: self.test_game_obj.validate_input(elem))
+
+    def test_validate_input_invalid_count_input_args_dimension(self):
+        params = ['10 1', '10 10', '1 4', '0 1', '3 4']
+        for elem in params:
+            with self.subTest(elem=elem):
+                self.assertRaises(InvalidCountInputArgs,
+                                  lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
+
+    def test_validate_input_not_digit_input_args_dimension(self):
+        params = ['10в', '.', 'ak']
+        for elem in params:
+            with self.subTest(elem=elem):
+                self.assertRaises(InvalidTypesInputArgs, lambda: self.test_game_obj.validate_input(elem,
+                                                                                                   validate_type='dimension'))
+
+    def test_validate_invalid_range_input_args_dimension(self):
+        params = ['100', '2', '31']
+        for elem in params:
+            with self.subTest(elem=elem):
+                self.assertRaises(InvalidDimensionRange, lambda: self.test_game_obj.validate_input(elem,
+                                                                                                   validate_type='dimension'))
+
+    def test_validate_invalid_game_type_input_args(self):
+        params = ['h', 'хуман', 'CoМputer']
+        for elem in params:
+            with self.subTest(elem=elem):
+                self.assertRaises(InvalidGameType, lambda: self.test_game_obj.validate_input(elem,
+                                                                                                   validate_type='game_type'))
 
     def test_check_winner_str_scenario(self):
         str_idx = random.choice(range(self.test_game_obj.dimension))

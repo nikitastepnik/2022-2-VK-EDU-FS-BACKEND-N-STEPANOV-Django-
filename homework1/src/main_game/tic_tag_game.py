@@ -71,7 +71,7 @@ class TicTacGame:
             return dimension
 
         if validate_type == 'game_type':
-            params_as_string = params_as_string.strip()
+            params_as_string = params_as_string.strip().islower()
             if params_as_string not in ['human', 'computer']:
                 raise InvalidGameType
             game_type = params_as_string
@@ -80,7 +80,7 @@ class TicTacGame:
 
         params_as_string = params_as_string.strip()
         if len(params_as_string.split()) != 2:
-            raise InvalidCountInputArgs()
+            raise InvalidCountInputArgs
 
         str_idx, col_idx = params_as_string.split()
 
