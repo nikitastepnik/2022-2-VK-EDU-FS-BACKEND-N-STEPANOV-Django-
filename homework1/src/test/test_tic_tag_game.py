@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from homework1.src.exceptions.custom_exceptions import InvalidCountInputArgs, InvalidTypesInputArgs, \
+from homework1.src.exceptions import InvalidCountInputArgs, InvalidTypesInputArgs, \
     InvalidRangeInputArgs, InvalidGameCell, InvalidDimensionRange, InvalidGameType
 from src.main_game.tic_tag_game import TicTacGame
 
