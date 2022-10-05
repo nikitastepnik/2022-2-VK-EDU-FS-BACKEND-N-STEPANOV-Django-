@@ -17,8 +17,8 @@ class TicTacGame:
     first_player_symbol = 'X'
     second_player_symbol = 'O'
 
-    def __init__(self, skip_fl=False):
-        if skip_fl:
+    def __init__(self, test_fl=False):
+        if test_fl:
             self.dimension = 3
             self.game_type = 'computer'
         else:
