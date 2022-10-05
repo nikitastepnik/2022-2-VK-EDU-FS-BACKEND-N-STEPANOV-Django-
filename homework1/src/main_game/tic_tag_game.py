@@ -17,8 +17,8 @@ class TicTacGame:
     first_player_symbol = 'X'
     second_player_symbol = 'O'
 
-    def __init__(self, skip_fl=False):
-        if skip_fl:
+    def __init__(self, test_fl=False):
+        if test_fl:
             self.dimension = 3
             self.game_type = 'computer'
         else:
@@ -71,7 +71,7 @@ class TicTacGame:
             return dimension
 
         if validate_type == 'game_type':
-            params_as_string = params_as_string.strip().islower()
+            params_as_string = params_as_string.strip().lower()
             if params_as_string not in ['human', 'computer']:
                 raise InvalidGameType
             game_type = params_as_string
