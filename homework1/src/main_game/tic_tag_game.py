@@ -157,7 +157,6 @@ class TicTacGame:
 
         while 1:
             str_idx = random.choice([*range(self.dimension)])
-            print(str_idx)
             col_idx = random.choice([*range(self.dimension)])
             if self.game_pole[str_idx][col_idx] == '-':
                 self.game_pole[str_idx][col_idx] = self.second_player_symbol
