@@ -1,28 +1,23 @@
 import json
 
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 
 from .static_mocks import list_chats_obj, page_chat_obj
 
 
+@require_http_methods(['GET', ])
 def list_of_chats(request):
-    if request.method != "GET":
-        return HttpResponseNotAllowed(['GET', ], status=405)
-
     return JsonResponse(list_chats_obj, status=200)
 
 
+@require_http_methods(['GET', ])
 def page_chat(request):
-    if request.method != "GET":
-        return HttpResponseNotAllowed(['GET', ], status=405)
-
     return JsonResponse(page_chat_obj, status=200)
 
 
+@require_http_methods(['POST', ])
 def create_chat(request):
-    if request.method != "POST":
-        return HttpResponseNotAllowed(['POST', ], status=405)
-
     body = json.loads(request.body)
 
     chat_type = body.get("chatType")
