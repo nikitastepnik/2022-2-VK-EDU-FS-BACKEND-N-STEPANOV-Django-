@@ -2,31 +2,29 @@ list_chats_obj = {
     "count": 2,
     "value": [
         {
-            "id": "19:meeting_MjdhNjM4YzUtYzExZi00OTFkLTkzZTAtNTVlNmZmMDhkNGU2@thread.v2",
-            "topic": "Meeting chat sample",
+            "id": "19",
+            "companionFirst": "123",
+            "companionSecond": "91",
+            "chatTopic": "Разговоры об играх",
             "createdDateTime": "2020-12-08T23:53:05.801Z",
-            "lastUpdatedDateTime": "2020-12-08T23:58:32.511Z",
-            "chatType": "meeting"
+            "lastMessageDateTime": "2020-12-08T23:58:32.511Z",
         },
         {
-            "id": "19:561082c0f3f847a58069deb8eb300807@thread.v2",
-            "topic": "Group chat sample",
+            "id": "20",
+            "companionFirst": "1",
+            "companionSecond": "5",
+            "chatTopic": "Хочу погулять",
             "createdDateTime": "2020-12-03T19:41:07.054Z",
-            "lastUpdatedDateTime": "2020-12-08T23:53:11.012Z",
-            "chatType": "group"
+            "lastMessageDateTime": "2020-12-08T23:53:11.012Z",
         }
     ]
 }
 
 page_chat_obj = {
-    "id": "19:meeting_MjdhNjM4YzUtYzExZi00OTFkLTkzZTAtNTVlNmZmMDhkNGU2@thread.v2",
-    "topic": "Meeting chat sample",
-    "privacy": "on",
+    "id": "43",
     "notifications": "on",
+    "chatTopic": "",
+    "summaryCountMsg": "933",
     "createdDateTime": "2020-12-08T23:53:05.801Z",
-    "lastUpdatedDateTime": "2020-12-08T23:58:32.511Z",
-    "chatType": "dialog",
-    "companion": "mom",
-    "count_missing_sms": "0",
-    "count_missing_calls": "7"
+    "lastMessageDateTime": "2020-12-08T23:58:32.511Z",
 }
