@@ -23,7 +23,7 @@ class Chats(models.Model):
     companion_first = models.ForeignKey(User, verbose_name="Собеседник 1", on_delete=models.SET_NULL, null=True,
                                         related_name="comp_first")
     companion_second = models.ForeignKey(User, verbose_name="Собеседник 2", on_delete=models.SET_NULL, null=True,
-                                         related_name="comp_set")
+                                         related_name="comp_seс")
     count_messages = models.IntegerField("Суммарное число сообщений", default=0)
 
     def __str__(self):
@@ -32,3 +32,6 @@ class Chats(models.Model):
     class Meta:
         verbose_name = 'Чат'
         verbose_name_plural = 'Чаты'
+
+
+# ./manage.py shell
