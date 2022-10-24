@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat_api',
+    'chat_message',
     'chat_ui',
-    'chat_message'
+    'chat_user'
 ]
 
 MIDDLEWARE = [
@@ -104,7 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'chat_api.User'
+AUTH_USER_MODEL = 'chat_user.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/

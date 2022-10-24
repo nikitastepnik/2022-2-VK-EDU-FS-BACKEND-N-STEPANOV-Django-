@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from .models import User, Chats
+from .models import Chats
 
-admin.site.register(User)
 admin.site.register(Chats)

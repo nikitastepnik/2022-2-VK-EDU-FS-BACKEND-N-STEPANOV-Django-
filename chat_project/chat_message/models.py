@@ -8,8 +8,8 @@ class Messages(models.Model):
     dispatch_date = models.DateTimeField("Дата отправки", auto_now_add=True)
     author = models.ForeignKey(User, verbose_name="Автор сообщения", on_delete=models.SET_NULL,
                                null=True, related_name="author_of_msgs")
-    chat_id = models.ForeignKey(Chats, verbose_name="Идентификатор чата", on_delete=models.SET_NULL,
-                                null=True, related_name="messages_in_chat")
+    chat = models.ForeignKey(Chats, verbose_name="Идентификатор чата", on_delete=models.SET_NULL,
+                             null=True, related_name="messages_in_chat")
 
     def __str__(self):
         return f"{self.author} {self.dispatch_date}"
