@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat_api',
-    'chat_ui'
+    'chat_ui',
+    'chat_message'
 ]
 
 MIDDLEWARE = [
@@ -108,11 +109,13 @@ AUTH_USER_MODEL = 'chat_api.User'
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'Ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
-USE_I18N = True
+DATETIME_FORMAT = "%Y-%m-%d%H:%M:%S"
+
+USE_I18N = False
 
 USE_TZ = True
 
