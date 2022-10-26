@@ -5,4 +5,5 @@ from .models import Chats
 
 @admin.register(Chats)
 class ChatsAdmin(admin.ModelAdmin):
-    list_display = ("topic", "companion_first", "companion_second", "count_messages")
+    list_display = ("id", "topic", "companion_first", "companion_second", "count_messages")
+    ordering = ["id"]

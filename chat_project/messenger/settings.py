@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat_api',
-    'chat_message',
+    'chat_message_api',
     'chat_ui',
     'chat_user'
 ]

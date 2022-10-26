@@ -12,11 +12,11 @@ class Chats(models.Model):
     companion_first = models.ForeignKey(User, verbose_name="Собеседник 1", on_delete=models.SET_NULL, null=True,
                                         related_name="comp_first")
     companion_second = models.ForeignKey(User, verbose_name="Собеседник 2", on_delete=models.SET_NULL, null=True,
-                                         related_name="comp_sec")
+                                         related_name="comp_second")
     count_messages = models.IntegerField("Суммарное число сообщений", default=0)
 
     def __str__(self):
-        return self.topic
+        return f"id: {self.id} topic: {self.topic}"
 
     class Meta:
         verbose_name = 'Чат'

@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class MessagesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'chat_message'
+    name = 'chat_message_api'
