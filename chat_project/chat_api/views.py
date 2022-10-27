@@ -36,10 +36,10 @@ def post_create_chat(request):
 
 @require_http_methods(['DELETE', 'GET'])
 def delete_chat(request, pk):
-    chat_id = get_object_or_404(Chats, id=pk)
+    chat_id = get_object_or_404(Chats, id=pk).id
 
     if chat_id:
-        Chats(id=pk).delete()
+        Chats(id=chat_id).delete()
         return JsonResponse({"deleted": True}, status=200)
 
     return JsonResponse({"deleted": False}, status=400)

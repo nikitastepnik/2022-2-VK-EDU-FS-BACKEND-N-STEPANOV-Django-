@@ -33,10 +33,10 @@ def post_create_message(request):
 # почему тут еще понадобился GET? иначе не работало...
 @require_http_methods(['DELETE', 'GET'])
 def delete_message(request, pk):
-    message_id = get_object_or_404(Messages, id=pk)
+    message_id = get_object_or_404(Messages, id=pk).id
 
     if message_id:
-        Messages(id=pk).delete()
+        Messages(id=message_id).delete()
         return JsonResponse({"deleted": True}, status=200)
 
     return JsonResponse({"deleted": False}, status=400)
