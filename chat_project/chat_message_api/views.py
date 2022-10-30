@@ -21,9 +21,13 @@ def post_create_message(request):
     user = get_object_or_404(User, id=author_id)
     chat = get_object_or_404(Chats, id=chat_id)
 
-    if content and user.id in (chat.companion_first.id, chat.companion_second, id):
-        message = Messages(chat=chat, content=content, author=user)
+    if content and user.id in (chat.companion_first.id, chat.companion_second.id):
+        message = Messages(chat=chat, content=content,
+                           author=user)  # если связь ForeignKey, то получается, чтобы найти связанное,
+        # нужно использовать не значение (не id), а объект запрашиваемой модели ? (Chats в этом случае)
         message.save()
+        chat.count_messages = len(chat.messages_in_chat.values())
+        chat.save()
 
         return JsonResponse({"created": True}, status=201)
 
