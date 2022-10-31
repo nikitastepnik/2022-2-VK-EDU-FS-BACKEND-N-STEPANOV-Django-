@@ -10,28 +10,50 @@ from chat_user.models import User
 
 
 @require_http_methods(['POST', ])
-def post_create_chat(request):
+def add_user_to_chat(request):
+    body = json.loads(request.body)
+    user_id = body.get("userId")
+    chat_id = body.get("chatId")
+    if user_id:
+        user_obj = get_object_or_404(User, id=user_id)
+        if chat_id:
+            chat_obj = get_object_or_404(Chats, id=chat_id)
+            if user_id not in [user["id"] for user in chat_obj.users.values()]:
+                chat_obj.users.add(user_obj.id)
+                return JsonResponse({"added": True, "info": f"user with {user_id} was added to chat with id {chat_id}"},
+                                    status=200)
+
+    return JsonResponse({"added": False, "info": f"user with {user_id} "
+                                                 f"has already been added to chat with id {chat_id}"}, status=400)
+
+
+@require_http_methods(['POST', ])
+def create_chat(request):
     body = json.loads(request.body)
 
     topic = body.get("topic")
-    companion_first = body.get("companionFirst")
-    companion_second = body.get("companionSecond")
-
-    if companion_first != companion_second:
-        companion_first_model_obj = get_object_or_404(User, username=companion_first)
-        companion_second_model_obj = get_object_or_404(User, username=companion_second)
+    description = body.get("description")
+    users_id = body.get("usersInChat")
+    if users_id:
+        for user_id in users_id:
+            get_object_or_404(User, id=user_id)
     else:
-        return JsonResponse({"created": False, "info": "companionFirst must be not equal companionSecond"}, status=400)
+        return JsonResponse({"created": False, "msgError": "'usersInChat' must be set"}, status=400)
 
-    if topic and companion_first_model_obj and companion_second_model_obj:
-        chat = Chats(topic=topic,
-                     companion_first=companion_first_model_obj,
-                     companion_second=companion_second_model_obj)
-        chat.save()
+    if topic and description:
+        chat = Chats(topic=topic, description=description)
+    elif topic:
+        chat = Chats(topic=topic)
+    elif description:
+        chat = Chats(description=description)
+    else:
+        chat = Chats()
+    chat.save()
 
-        return JsonResponse({"created": True}, status=201)
+    for user_id in users_id:
+        chat.users.add(user_id)
 
-    return JsonResponse({"created": False}, status=400)
+    return JsonResponse({"created": True}, status=201)
 
 
 @require_http_methods(['DELETE', 'GET'])
@@ -40,7 +62,24 @@ def delete_chat(request, pk):
 
     if chat_id:
         Chats(id=chat_id).delete()
-        return JsonResponse({"deleted": True}, status=200)
+        return JsonResponse({"deleted": True, "idDeletedChat": chat_id}, status=200)
+
+    return JsonResponse({"deleted": False}, status=400)
+
+
+@require_http_methods(['DELETE', 'GET'])
+def delete_member_from_chat(request):
+    body = json.loads(request.body)
+    user_id = body.get("userId")
+    chat_id = body.get("chatId")
+    if user_id:
+        user_obj = get_object_or_404(User, id=user_id)
+        if chat_id:
+            chat_obj = get_object_or_404(Chats, id=chat_id)
+            if user_id in [item["id"] for item in chat_obj.users.values()]:
+                chat_obj.users.remove(user_obj.id)
+                return JsonResponse({"deleted": True, "info": f"user with {user_id} "
+                                                              f"was deleted from chat with id {chat_id}"}, status=200)
 
     return JsonResponse({"deleted": False}, status=400)
 
@@ -66,8 +105,7 @@ def get_chats(request):
         {'id': chat.id,
          'topic': chat.topic,
          'created_at': chat.created_at.strftime("%d/%m/%Y, %H:%M:%S"),
-         'companion_first': chat.companion_first.username + ' ' + chat.companion_first.email,
-         'companion_second': chat.companion_second.username + ' ' + chat.companion_first.email,
+         'usersIds': [user["id"] for user in chat.users.values()],  # как сделать отображение в 1 строку ?
          'count_messages': str(chat.count_messages)} for chat in chats
     ]
 
@@ -76,28 +114,39 @@ def get_chats(request):
 
 @require_http_methods(['GET', ])
 def get_user_chats(request, user_pk):
-    chats_user_as_comp_first = get_object_or_404(User, id=user_pk).comp_second.values()
-    chats_user_as_comp_sec = get_object_or_404(User, id=user_pk).comp_first.values()
-    chats_summary = list(chats_user_as_comp_first) + list(chats_user_as_comp_sec)
+    chats_user = list(get_object_or_404(User, id=user_pk).chat_users.values())
 
-    for key, value in chats_summary[0].items():
+    if not chats_user:
+        return JsonResponse({"items": []}, status=200)
+
+    for key, value in chats_user[0].items():
         if isinstance(value, datetime.datetime):
-            chats_summary[0][key] = value.strftime("%d/%m/%Y, %H:%M:%S")
+            chats_user[0][key] = value.strftime("%d/%m/%Y, %H:%M:%S")
 
-    return JsonResponse({"items": chats_summary}, status=200)
+    return JsonResponse({"items": chats_user}, status=200)
 
 
 @require_http_methods(['PUT'])
-def edit_chat_topic(request):
+def edit_chat_information(request):
     body = json.loads(request.body)
     chat_id = body.get("chatId")
     new_topic = body.get("newTopic")
+    new_description = body.get("newDescription")
 
-    if chat_id and new_topic:
+    if chat_id and (new_topic or new_description):
         chat_obj = get_object_or_404(Chats, id=chat_id)
-        chat_obj.topic = new_topic
+        if new_description:
+            chat_obj.description = new_description
+        if new_topic:
+            chat_obj.topic = new_topic
         chat_obj.save()
 
-        return JsonResponse({"edited": True, "newTopic": new_topic}, status=200)
+        if new_topic and new_description:
+            return JsonResponse({"edited": True, "newTopic": new_topic, "newDescription": new_description},
+                                status=200)
+        elif new_topic:
+            return JsonResponse({"edited": True, "newTopic": new_topic}, status=200)
+        elif new_description:
+            return JsonResponse({"edited": True, "newDescription": new_description}, status=200)
 
     return JsonResponse({"edited": False}, status=400)

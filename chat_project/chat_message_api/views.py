@@ -11,7 +11,7 @@ from chat_user.models import User
 
 
 @require_http_methods(['POST', ])
-def post_create_message(request):
+def create_message(request):
     body = json.loads(request.body)
 
     chat_id = body.get("chatId")
@@ -21,11 +21,11 @@ def post_create_message(request):
     user = get_object_or_404(User, id=author_id)
     chat = get_object_or_404(Chats, id=chat_id)
 
-    if content and user.id in (chat.companion_first.id, chat.companion_second.id):
-        message = Messages(chat=chat, content=content,
-                           author=user)  # если связь ForeignKey, то получается, чтобы найти связанное,
-        # нужно использовать не значение (не id), а объект запрашиваемой модели ? (Chats в этом случае)
+    if content and user.id in [item["id"] for item in chat.users.values()]:
+        message = Messages(chat=chat, content=content, author=user)
         message.save()
+        user.last_seen_at = datetime.datetime.now()
+        user.save()
         chat.count_messages = len(chat.messages_in_chat.values())
         chat.save()
 
@@ -37,11 +37,17 @@ def post_create_message(request):
 # почему тут еще понадобился GET? иначе не работало...
 @require_http_methods(['DELETE', 'GET'])
 def delete_message(request, pk):
-    message_id = get_object_or_404(Messages, id=pk).id
+    msg_obj = get_object_or_404(Messages, id=pk)
+    msg_chat = msg_obj.chat_id
+    chat = get_object_or_404(Chats, id=msg_chat)
+    message_id = msg_obj.id
 
     if message_id:
         Messages(id=message_id).delete()
-        return JsonResponse({"deleted": True}, status=200)
+        chat.count_messages -= 1
+        chat.save()
+
+        return JsonResponse({"deleted": True, "idDeletedMessage": message_id}, status=200)
 
     return JsonResponse({"deleted": False}, status=400)
 
@@ -75,12 +81,12 @@ def get_message(request, pk):
 
 
 @require_http_methods(['GET', ])
-def get_message_list_user_chat(request):
+def get_messages_filter_user_chat(request):
     messages_chat_cur_user = []
     user_pk = int(request.GET.get("userId"))
     chat_pk = request.GET.get("chatId")
     messages_chat_sum = list(get_object_or_404(Chats, id=chat_pk).messages_in_chat.values())
-    for idx_elem, elem in enumerate(messages_chat_sum):
+    for elem in messages_chat_sum:
         if elem["author_id"] == user_pk:
             for key, value in elem.items():
                 if isinstance(value, datetime.datetime):
@@ -88,3 +94,29 @@ def get_message_list_user_chat(request):
             messages_chat_cur_user.append(elem)
 
     return JsonResponse({"messages": messages_chat_cur_user}, status=200)
+
+
+@require_http_methods(['GET', ])
+def get_messages_filter_chat(request):
+    messages_cur_chat = []
+    chat_pk = request.GET.get("chatId")
+    messages_chat_sum = list(get_object_or_404(Chats, id=chat_pk).messages_in_chat.values())
+    for elem in messages_chat_sum:
+        for key, value in elem.items():
+            if isinstance(value, datetime.datetime):
+                elem[key] = value.strftime("%d/%m/%Y, %H:%M:%S")
+                messages_cur_chat.append(elem)
+
+    return JsonResponse({"messages": messages_cur_chat}, status=200)
+
+
+@require_http_methods(['PUT', ])
+def mark_message_as_viewed(request, pk):
+    msg_model = get_object_or_404(Messages, id=pk)
+    if not msg_model.viewed:
+        msg_model.viewed = True
+        msg_model.save()
+
+        return JsonResponse({"viewed": True, "info": f"message with id {msg_model.id} mark as viewed"}, status=200)
+
+    return JsonResponse({"viewed": False, "info": f"message with id {msg_model.id} is viewed already"}, status=400)
