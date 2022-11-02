@@ -5,8 +5,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from chat_api.models import Chats
-from chat_message_api.models import Messages
+from chat_api.models import Chat
+from chat_message_api.models import Message
 from chat_user.models import User
 
 
@@ -19,10 +19,10 @@ def create_message(request):
     content = body.get("content")
 
     user = get_object_or_404(User, id=author_id)
-    chat = get_object_or_404(Chats, id=chat_id)
+    chat = get_object_or_404(Chat, id=chat_id)
 
     if content and user.id in [item["id"] for item in chat.users.values()]:
-        message = Messages(chat=chat, content=content, author=user)
+        message = Message(chat=chat, content=content, author=user)
         message.save()
         user.last_seen_at = datetime.datetime.now()
         user.save()
@@ -35,15 +35,15 @@ def create_message(request):
 
 
 # почему тут еще понадобился GET? иначе не работало...
-@require_http_methods(['DELETE', 'GET'])
+@require_http_methods(['DELETE'])
 def delete_message(request, pk):
-    msg_obj = get_object_or_404(Messages, id=pk)
+    msg_obj = get_object_or_404(Message, id=pk)
     msg_chat = msg_obj.chat_id
-    chat = get_object_or_404(Chats, id=msg_chat)
+    chat = get_object_or_404(Chat, id=msg_chat)
     message_id = msg_obj.id
 
     if message_id:
-        Messages(id=message_id).delete()
+        Message(id=message_id).delete()
         chat.count_messages -= 1
         chat.save()
 
@@ -59,7 +59,7 @@ def edit_message_content(request):
     new_content = body.get("newContent")
 
     if message_id and new_content:
-        message_obj = get_object_or_404(Messages, id=message_id)
+        message_obj = get_object_or_404(Message, id=message_id)
         message_obj.content = new_content
         message_obj.save()
 
@@ -70,8 +70,8 @@ def edit_message_content(request):
 
 @require_http_methods(['GET', ])
 def get_message(request, pk):
-    msg_model = get_object_or_404(Messages, id=pk)
-    message = list(Messages.objects.filter(id=msg_model.id).values())
+    msg_model = get_object_or_404(Message, id=pk)
+    message = list(Message.objects.filter(id=msg_model.id).values())
 
     for key, value in message[0].items():
         if isinstance(value, datetime.datetime):
@@ -85,7 +85,7 @@ def get_messages_filter_user_chat(request):
     messages_chat_cur_user = []
     user_pk = int(request.GET.get("userId"))
     chat_pk = request.GET.get("chatId")
-    messages_chat_sum = list(get_object_or_404(Chats, id=chat_pk).messages_in_chat.values())
+    messages_chat_sum = list(get_object_or_404(Chat, id=chat_pk).messages_in_chat.values())
     for elem in messages_chat_sum:
         if elem["author_id"] == user_pk:
             for key, value in elem.items():
@@ -100,7 +100,7 @@ def get_messages_filter_user_chat(request):
 def get_messages_filter_chat(request):
     messages_cur_chat = []
     chat_pk = request.GET.get("chatId")
-    messages_chat_sum = list(get_object_or_404(Chats, id=chat_pk).messages_in_chat.values())
+    messages_chat_sum = list(get_object_or_404(Chat, id=chat_pk).messages_in_chat.values())
     for elem in messages_chat_sum:
         for key, value in elem.items():
             if isinstance(value, datetime.datetime):
@@ -112,7 +112,7 @@ def get_messages_filter_chat(request):
 
 @require_http_methods(['PUT', ])
 def mark_message_as_viewed(request, pk):
-    msg_model = get_object_or_404(Messages, id=pk)
+    msg_model = get_object_or_404(Message, id=pk)
     if not msg_model.viewed:
         msg_model.viewed = True
         msg_model.save()
