@@ -8,7 +8,7 @@ from chat_user.models import User
 
 class Chat(models.Model):
     topic = models.TextField("Название", default="Базовое название")
-    description = models.TextField("Описание", default="")
+    description = models.TextField("Описание", default="Базовое описание")
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     users = models.ManyToManyField(User, verbose_name="Пользователи чата",
                                    related_name="chat_users")

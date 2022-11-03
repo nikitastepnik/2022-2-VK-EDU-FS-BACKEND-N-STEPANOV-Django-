@@ -5,5 +5,5 @@ from .models import Chat
 
 @admin.register(Chat)
 class ChatsAdmin(admin.ModelAdmin):
-    list_display = ("id", "topic", "count_messages")
+    list_display = ("id", "topic", "description", "count_messages")
     ordering = ["id"]
