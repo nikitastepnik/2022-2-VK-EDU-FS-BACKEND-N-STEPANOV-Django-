@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view
 
 from chat_api.models import Chat
 from chat_message_api.models import Message
@@ -13,23 +14,21 @@ from chat_user.models import User
 
 @require_http_methods(['POST', ])
 def create_message(request):
-    body = json.loads(request.body)
-
-    chat_id = body.get("chat_id")
-    author_id = body.get("author_id")
-    content = body.get("content")
+    chat_id = request.POST.get("chat_id")
+    author_id = request.POST.get("author_id")
+    content = request.POST.get("content")
 
     user = get_object_or_404(User, id=author_id)
     chat = get_object_or_404(Chat, id=chat_id)
 
     if content and user.id in [item["id"] for item in chat.users.values()]:
-        Message.objects.create(**body)
+        Message.objects.create(**{k: request.POST.get(k) for k in request.POST})
         user.last_seen_at = timezone.now()
         user.save()
         chat.count_messages = len(chat.messages_in_chat.values())
         chat.save()
 
-        return JsonResponse({"created": True}, status=201)
+        return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)
 
     return JsonResponse({"created": False}, status=400)
 
