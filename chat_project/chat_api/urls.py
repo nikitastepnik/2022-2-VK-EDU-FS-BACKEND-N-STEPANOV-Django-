@@ -10,5 +10,5 @@ urlpatterns = [
     re_path('get/(?P<pk>(\d)+)/', ChatViewSet.as_view({'get': 'retrieve'})),
     path('get_all_chats/', ChatViewSet.as_view({'get': 'list_all_chats'})),
     re_path('get_users/(?P<user_pk>(\d)+)/', ChatViewSet.as_view({'get': 'list_user_chats'})),
-    path('edit/', ChatViewSet.as_view({'put': 'update'})),
+    re_path('edit/(?P<pk>(\d)+)/', ChatViewSet.as_view({'put': 'update'})),
 ]

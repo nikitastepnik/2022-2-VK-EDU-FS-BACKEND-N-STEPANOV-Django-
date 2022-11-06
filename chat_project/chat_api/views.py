@@ -82,11 +82,10 @@ class ChatViewSet(viewsets.ViewSet):
 
         return JsonResponse({"items": chats_user.data}, status=200)
 
-    def update(self, request):
+    def update(self, request, pk):
         body = json.loads(request.body)
-        chat_id = body.pop("chat_id")
-        if get_object_or_404(Chat, id=chat_id):
-            Chat.objects.filter(id=chat_id).update(**body)
+        if get_object_or_404(Chat, id=pk):
+            Chat.objects.filter(id=pk).update(**body)
 
             return JsonResponse({"edited": True, **body}, status=200)
 
