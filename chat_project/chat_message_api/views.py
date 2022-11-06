@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from rest_framework.decorators import api_view
+from rest_framework import viewsets
 
 from chat_api.models import Chat
 from chat_message_api.models import Message
@@ -12,49 +12,58 @@ from chat_message_api.serializers import MessageSerializer
 from chat_user.models import User
 
 
-@require_http_methods(['POST', ])
-def create_message(request):
-    chat_id = request.POST.get("chat_id")
-    author_id = request.POST.get("author_id")
-    content = request.POST.get("content")
+class MessageViewSet(viewsets.ViewSet):
+    def create(self, request):
+        chat_id = request.POST.get("chat_id")
+        author_id = request.POST.get("author_id")
+        content = request.POST.get("content")
 
-    user = get_object_or_404(User, id=author_id)
-    chat = get_object_or_404(Chat, id=chat_id)
+        user = get_object_or_404(User, id=author_id)
+        chat = get_object_or_404(Chat, id=chat_id)
 
-    if content and user.id in [item["id"] for item in chat.users.values()]:
-        Message.objects.create(**{k: request.POST.get(k) for k in request.POST})
-        user.last_seen_at = timezone.now()
-        user.save()
-        chat.count_messages = len(chat.messages_in_chat.values())
+        if content and user.id in [item["id"] for item in chat.users.values()]:
+            Message.objects.create(**{k: request.POST.get(k) for k in request.POST})
+            user.last_seen_at = timezone.now()
+            user.save()
+            chat.count_messages = len(chat.messages_in_chat.values())
+            chat.save()
+
+            return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)
+
+        return JsonResponse({"created": False}, status=400)
+
+    def destroy(self, request):
+        msg_id = request.GET.get("message_id")
+        msg_obj = get_object_or_404(Message, id=msg_id)
+        chat = get_object_or_404(Chat, id=msg_obj.chat_id)
+
+        Message(id=msg_obj.id).delete()
+        chat.count_messages -= 1
         chat.save()
 
-        return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)
+        return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
 
-    return JsonResponse({"created": False}, status=400)
+    def partial_update(self, request):
+        body = json.loads(request.body)
+        message_id = body.pop("message_id")
 
+        if message_id and get_object_or_404(Message, id=message_id):
+            Message.objects.filter(id=message_id).update(**body)
+            return JsonResponse({"edited": True, **body}, status=200)
 
-@require_http_methods(['DELETE', 'GET'])  # без GET - возращает 405 (скрин на рабочем столе)
-def delete_message(request, pk):
-    msg_obj = get_object_or_404(Message, id=pk)
-    chat = get_object_or_404(Chat, id=msg_obj.chat_id)
-
-    Message(id=msg_obj.id).delete()
-    chat.count_messages -= 1
-    chat.save()
-
-    return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
+        return JsonResponse({"edited": False}, status=400)
 
 
-@require_http_methods(['PUT'])
-def edit_message_content(request):
-    body = json.loads(request.body)
-    message_id = body.pop("message_id")
-
-    if message_id and get_object_or_404(Message, id=message_id):
-        Message.objects.filter(id=message_id).update(**body)
-        return JsonResponse({"edited": True, **body}, status=200)
-
-    return JsonResponse({"edited": False}, status=400)
+# @require_http_methods(['PUT'])
+# def edit_message_content(request):
+#     body = json.loads(request.body)
+#     message_id = body.pop("message_id")
+#
+#     if message_id and get_object_or_404(Message, id=message_id):
+#         Message.objects.filter(id=message_id).update(**body)
+#         return JsonResponse({"edited": True, **body}, status=200)
+#
+#     return JsonResponse({"edited": False}, status=400)
 
 
 @require_http_methods(['GET', ])
