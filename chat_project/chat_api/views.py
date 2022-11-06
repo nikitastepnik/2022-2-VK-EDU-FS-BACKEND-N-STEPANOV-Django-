@@ -11,9 +11,9 @@ from chat_user.models import User
 
 @require_http_methods(['POST', ])
 def add_user_to_chat(request):
-    body = json.loads(request.body)
-    user_id = body.get("user_id")
-    chat_id = body.get("chat_id")
+    user_id = int(request.POST.get("user_id"))
+    chat_id = request.POST.get("chat_id")
+
     user_obj = get_object_or_404(User, id=user_id)
     chat_obj = get_object_or_404(Chat, id=chat_id)
 
