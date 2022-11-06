@@ -3,27 +3,27 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
+from rest_framework import viewsets
 
 from chat_api.models import Chat
 from chat_api.serializers import ChatSerializer
 from chat_user.models import User
 
 
-@require_http_methods(['POST', ])
-def add_user_to_chat(request):
-    body = json.loads(request.body)
-    user_id = body.get("user_id")
-    chat_id = body.get("chat_id")
-    user_obj = get_object_or_404(User, id=user_id)
-    chat_obj = get_object_or_404(Chat, id=chat_id)
+class ChatViewSet(viewsets.ViewSet):
+    def partial_update_add_user_to_chat(self, request):
+        user_id = request.POST.get("user_id")
+        chat_id = request.POST.get("chat_id")
+        user_obj = get_object_or_404(User, id=user_id)
+        chat_obj = get_object_or_404(Chat, id=chat_id)
 
-    if user_id not in [user["id"] for user in chat_obj.users.values()]:
-        chat_obj.users.add(user_obj.id)
-        return JsonResponse({"added": True, "info": f"user with {user_id} was added to chat with id {chat_id}"},
-                            status=200)
+        if user_id not in [user["id"] for user in chat_obj.users.values()]:
+            chat_obj.users.add(user_obj.id)
+            return JsonResponse({"added": True, "info": f"user with {user_id} was added to chat with id {chat_id}"},
+                                status=200)
 
-    return JsonResponse({"added": False, "info": f"user with {user_id} "
-                                                 f"has already been added to chat with id {chat_id}"}, status=400)
+        return JsonResponse({"added": False, "info": f"user with {user_id} "
+                                                     f"has already been added to chat with id {chat_id}"}, status=400)
 
 
 @require_http_methods(['POST', ])

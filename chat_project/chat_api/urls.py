@@ -1,9 +1,11 @@
 from django.urls import path, re_path
 
 from . import views
+from .views import ChatViewSet
+
 
 urlpatterns = [
-    path('add_member/', views.add_user_to_chat),
+    path('add_member/', ChatViewSet.as_view({'put': 'partial_update_add_user_to_chat'})),
     path('create/', views.create_chat),
     re_path('delete/(?P<pk>(\d)+)/', views.delete_chat),
     path('delete_member/', views.delete_member_from_chat),
