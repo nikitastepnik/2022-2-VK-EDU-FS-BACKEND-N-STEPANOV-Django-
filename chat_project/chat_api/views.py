@@ -2,7 +2,6 @@ import json
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
 from rest_framework import viewsets
 
 from chat_api.models import Chat
@@ -12,7 +11,7 @@ from chat_user.models import User
 
 class ChatViewSet(viewsets.ViewSet):
     def partial_update_add_user_to_chat(self, request):
-        user_id = request.POST.get("user_id")
+        user_id = int(request.POST.get("user_id"))
         chat_id = request.POST.get("chat_id")
         user_obj = get_object_or_404(User, id=user_id)
         chat_obj = get_object_or_404(Chat, id=chat_id)
@@ -25,85 +24,70 @@ class ChatViewSet(viewsets.ViewSet):
         return JsonResponse({"added": False, "info": f"user with {user_id} "
                                                      f"has already been added to chat with id {chat_id}"}, status=400)
 
+    def create(self, request):
+        body = json.loads(request.body)
+        users_id = body.pop("users_in_chat")
 
-@require_http_methods(['POST', ])
-def create_chat(request):
-    body = json.loads(request.body)
-    users_id = body.pop("users_in_chat")
+        if users_id:
+            for user_id in users_id:
+                get_object_or_404(User, id=user_id)
+        else:
+            return JsonResponse({"created": False, "msg_error": "'users_in_chat' must be set"}, status=400)
 
-    if users_id:
+        chat = Chat.objects.create(**body)
+
         for user_id in users_id:
-            get_object_or_404(User, id=user_id)
-    else:
-        return JsonResponse({"created": False, "msg_error": "'users_in_chat' must be set"}, status=400)
+            chat.users.add(user_id)
 
-    chat = Chat.objects.create(**body)
+        return JsonResponse({"created": True}, status=201)
 
-    for user_id in users_id:
-        chat.users.add(user_id)
+    def destroy(self, request, pk):
+        if pk and get_object_or_404(Chat, id=pk):
+            Chat(id=pk).delete()
+            return JsonResponse({"deleted": True, "id_deleted_chat": pk}, status=200)
 
-    return JsonResponse({"created": True}, status=201)
+        return JsonResponse({"deleted": False}, status=400)
 
+    def delete_member_from_chat(self, request):
+        user_id = request.GET.get("user_id")
+        chat_id = request.GET.get("chat_id")
+        user_obj = get_object_or_404(User, id=user_id)
+        chat_obj = get_object_or_404(Chat, id=chat_id)
 
-@require_http_methods(['DELETE', 'GET'])
-def delete_chat(request, pk):
-    if pk and get_object_or_404(Chat, id=pk):
-        Chat(id=pk).delete()
-        return JsonResponse({"deleted": True, "id_deleted_chat": pk}, status=200)
+        if user_id in [item["id"] for item in chat_obj.users.values()]:
+            chat_obj.users.remove(user_obj.id)
+            return JsonResponse({"deleted": True, "info": f"user with {user_id} "
+                                                          f"was deleted from chat with id {chat_id}"}, status=200)
 
-    return JsonResponse({"deleted": False}, status=400)
+        return JsonResponse({"deleted": False}, status=400)
 
+    def retrieve(request, pk):
+        chat_model = get_object_or_404(Chat, id=pk)
+        chat = ChatSerializer(chat_model)
 
-@require_http_methods(['DELETE', 'GET'])
-def delete_member_from_chat(request):
-    body = json.loads(request.body)
-    user_id = body.get("user_id")
-    chat_id = body.get("chat_id")
-    user_obj = get_object_or_404(User, id=user_id)
-    chat_obj = get_object_or_404(Chat, id=chat_id)
+        return JsonResponse({"chat_info": chat.data}, status=200)
 
-    if user_id in [item["id"] for item in chat_obj.users.values()]:
-        chat_obj.users.remove(user_obj.id)
-        return JsonResponse({"deleted": True, "info": f"user with {user_id} "
-                                                      f"was deleted from chat with id {chat_id}"}, status=200)
+    def list_all_chats(self, request):
+        chats = ChatSerializer(Chat.objects.all(), many=True)
 
-    return JsonResponse({"deleted": False}, status=400)
+        return JsonResponse({"items": chats.data}, status=200)
 
+    def list_user_chats(self, request, user_pk):
+        chats_user = get_object_or_404(User, id=user_pk).chat_users
 
-@require_http_methods(['GET', ])
-def get_chat(request, pk):
-    chat_model = get_object_or_404(Chat, id=pk)
-    chat = ChatSerializer(chat_model)
+        if not chats_user:
+            return JsonResponse({"items": []}, status=200)
 
-    return JsonResponse({"chat_info": chat.data}, status=200)
+        chats_user = ChatSerializer(chats_user, many=True)
 
+        return JsonResponse({"items": chats_user.data}, status=200)
 
-@require_http_methods(['GET', ])
-def get_chats(request):
-    chats = ChatSerializer(Chat.objects.all(), many=True)
+    def update(self, request):
+        body = json.loads(request.body)
+        chat_id = body.pop("chat_id")
+        if get_object_or_404(Chat, id=chat_id):
+            Chat.objects.filter(id=chat_id).update(**body)
 
-    return JsonResponse({"items": chats.data}, status=200)
+            return JsonResponse({"edited": True, **body}, status=200)
 
-
-@require_http_methods(['GET', ])
-def get_user_chats(request, user_pk):
-    chats_user = get_object_or_404(User, id=user_pk).chat_users
-
-    if not chats_user:
-        return JsonResponse({"items": []}, status=200)
-
-    chats_user = ChatSerializer(chats_user, many=True)
-
-    return JsonResponse({"items": chats_user.data}, status=200)
-
-
-@require_http_methods(['PUT'])
-def edit_chat_information(request):
-    body = json.loads(request.body)
-    chat_id = body.pop("chat_id")
-    if get_object_or_404(Chat, id=chat_id):
-        Chat.objects.filter(id=chat_id).update(**body)
-
-        return JsonResponse({"edited": True, **body}, status=200)
-
-    return JsonResponse({"edited": False}, status=400)
+        return JsonResponse({"edited": False}, status=400)

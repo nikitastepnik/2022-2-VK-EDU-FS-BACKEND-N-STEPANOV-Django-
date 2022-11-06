@@ -31,9 +31,8 @@ class MessageViewSet(viewsets.ViewSet):
 
         return JsonResponse({"created": False}, status=400)
 
-    def destroy(self, request):
-        msg_id = request.GET.get("message_id")
-        msg_obj = get_object_or_404(Message, id=msg_id)
+    def destroy(self, request, pk):
+        msg_obj = get_object_or_404(Message, id=pk)
         chat = get_object_or_404(Chat, id=msg_obj.chat_id)
 
         Message(id=msg_obj.id).delete()
@@ -42,12 +41,11 @@ class MessageViewSet(viewsets.ViewSet):
 
         return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
 
-    def partial_update(self, request):
+    def partial_update_content(self, request, pk):
         body = json.loads(request.body)
-        message_id = body.pop("message_id")
 
-        if message_id and get_object_or_404(Message, id=message_id):
-            Message.objects.filter(id=message_id).update(**body)
+        if pk and get_object_or_404(Message, id=pk):
+            Message.objects.filter(id=pk).update(**body)
             return JsonResponse({"edited": True, **body}, status=200)
 
         return JsonResponse({"edited": False}, status=400)
@@ -58,13 +56,11 @@ class MessageViewSet(viewsets.ViewSet):
 
         return JsonResponse({"msg_info": message.data}, status=200)
 
-    def partial_update_status(self, request):
-        body = json.loads(request.body)
-        message_id = body.pop("message_id")
-        msg_model = get_object_or_404(Message, id=message_id)
+    def partial_update_status(self, request, pk):
+        msg_model = get_object_or_404(Message, id=pk)
 
-        if not msg_model.viewed and get_object_or_404(Message, id=message_id):
-            Message.objects.filter(id=message_id).update(viewed=True)
+        if not msg_model.viewed and get_object_or_404(Message, id=pk):
+            Message.objects.filter(id=pk).update(viewed=True)
 
             return JsonResponse({"viewed": True, "info": f"message with id {msg_model.id} mark as viewed"}, status=200)
 
