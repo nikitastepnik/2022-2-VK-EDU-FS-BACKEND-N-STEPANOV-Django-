@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     path('create/', views.create_message),
-    re_path('delete/(?P<pk>(\d)+)/$', views.delete_message),
+    path('delete/', views.delete_message),
     path('edit/', views.edit_message_content),
     re_path('get/(?P<pk>(\d)+)/$', views.get_message),
     path('get_list_for_user_chat/', views.get_messages_filter_user_chat),

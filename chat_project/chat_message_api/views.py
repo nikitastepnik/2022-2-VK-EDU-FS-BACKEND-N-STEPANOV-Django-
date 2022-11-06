@@ -33,9 +33,10 @@ def create_message(request):
     return JsonResponse({"created": False}, status=400)
 
 
-@require_http_methods(['DELETE', 'GET'])  # без GET - возращает 405 (скрин на рабочем столе)
-def delete_message(request, pk):
-    msg_obj = get_object_or_404(Message, id=pk)
+@require_http_methods(['DELETE'])
+def delete_message(request):
+    msg_id = request.GET.get("message_id")
+    msg_obj = get_object_or_404(Message, id=msg_id)
     chat = get_object_or_404(Chat, id=msg_obj.chat_id)
 
     Message(id=msg_obj.id).delete()
