@@ -34,9 +34,8 @@ def create_message(request):
 
 
 @require_http_methods(['DELETE'])
-def delete_message(request):
-    msg_id = request.GET.get("message_id")
-    msg_obj = get_object_or_404(Message, id=msg_id)
+def delete_message(request, pk):
+    msg_obj = get_object_or_404(Message, id=pk)
     chat = get_object_or_404(Chat, id=msg_obj.chat_id)
 
     Message(id=msg_obj.id).delete()
@@ -47,12 +46,11 @@ def delete_message(request):
 
 
 @require_http_methods(['PUT'])
-def edit_message_content(request):
+def edit_message_content(request, pk):
     body = json.loads(request.body)
-    message_id = body.pop("message_id")
 
-    if message_id and get_object_or_404(Message, id=message_id):
-        Message.objects.filter(id=message_id).update(**body)
+    if pk and get_object_or_404(Message, id=pk):
+        Message.objects.filter(id=pk).update(**body)
         return JsonResponse({"edited": True, **body}, status=200)
 
     return JsonResponse({"edited": False}, status=400)

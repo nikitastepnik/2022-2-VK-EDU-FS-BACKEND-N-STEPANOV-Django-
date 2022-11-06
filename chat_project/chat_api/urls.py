@@ -10,5 +10,5 @@ urlpatterns = [
     re_path('get/(?P<pk>(\d)+)/', views.get_chat),
     path('get_all_chats/', views.get_chats),
     re_path('get_users/(?P<user_pk>(\d)+)/', views.get_user_chats),
-    path('edit/', views.edit_chat_information),
+    re_path('edit/(?P<pk>(\d)+)/', views.edit_chat_information),
 ]
