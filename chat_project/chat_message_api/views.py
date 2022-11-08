@@ -1,5 +1,3 @@
-import json
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -42,11 +40,9 @@ class MessageViewSet(viewsets.ViewSet):
         return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
 
     def partial_update_content(self, request, pk):
-        body = json.loads(request.body)
-
         if pk and get_object_or_404(Message, id=pk):
-            Message.objects.filter(id=pk).update(**body)
-            return JsonResponse({"edited": True, **body}, status=200)
+            Message.objects.filter(id=pk).update(**request.data)
+            return JsonResponse({"edited": True, **request.data}, status=200)
 
         return JsonResponse({"edited": False}, status=400)
 
@@ -59,8 +55,9 @@ class MessageViewSet(viewsets.ViewSet):
     def partial_update_status(self, request, pk):
         msg_model = get_object_or_404(Message, id=pk)
 
-        if not msg_model.viewed and get_object_or_404(Message, id=pk):
-            Message.objects.filter(id=pk).update(viewed=True)
+        if not msg_model.viewed:
+            msg_model.viewed = True
+            msg_model.save()
 
             return JsonResponse({"viewed": True, "info": f"message with id {msg_model.id} mark as viewed"}, status=200)
 

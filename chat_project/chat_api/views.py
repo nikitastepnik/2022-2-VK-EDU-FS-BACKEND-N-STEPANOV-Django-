@@ -1,5 +1,3 @@
-import json
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -25,8 +23,7 @@ class ChatViewSet(viewsets.ViewSet):
                                                      f"has already been added to chat with id {chat_id}"}, status=400)
 
     def create(self, request):
-        body = json.loads(request.body)
-        users_id = body.pop("users_in_chat")
+        users_id = request.data.pop("users_in_chat")
 
         if users_id:
             for user_id in users_id:
@@ -34,7 +31,7 @@ class ChatViewSet(viewsets.ViewSet):
         else:
             return JsonResponse({"created": False, "msg_error": "'users_in_chat' must be set"}, status=400)
 
-        chat = Chat.objects.create(**body)
+        chat = Chat.objects.create(**request.data)
 
         for user_id in users_id:
             chat.users.add(user_id)
@@ -83,10 +80,9 @@ class ChatViewSet(viewsets.ViewSet):
         return JsonResponse({"items": chats_user.data}, status=200)
 
     def update(self, request, pk):
-        body = json.loads(request.body)
         if get_object_or_404(Chat, id=pk):
-            Chat.objects.filter(id=pk).update(**body)
+            Chat.objects.filter(id=pk).update(**request.POST)
 
-            return JsonResponse({"edited": True, **body}, status=200)
+            return JsonResponse({"edited": True, **request.POST}, status=200)
 
         return JsonResponse({"edited": False}, status=400)

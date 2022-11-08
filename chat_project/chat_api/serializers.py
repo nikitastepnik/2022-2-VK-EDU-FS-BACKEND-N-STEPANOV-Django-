@@ -4,7 +4,7 @@ from chat_api.models import Chat
 
 
 class ChatSerializer(serializers.ModelSerializer):
-    topic = serializers.CharField()
+    topic = serializers.CharField(max_length=1)
     description = serializers.CharField()
     created_at = serializers.DateTimeField()
     count_messages = serializers.IntegerField()
