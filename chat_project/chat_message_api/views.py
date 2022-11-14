@@ -32,7 +32,6 @@ class MessageViewSet(viewsets.ViewSet):
     def destroy(self, request, pk):
         msg_obj = get_object_or_404(Message, id=pk)
         chat = get_object_or_404(Chat, id=msg_obj.chat_id)
-
         Message(id=msg_obj.id).delete()
         chat.count_messages -= 1
         chat.save()
