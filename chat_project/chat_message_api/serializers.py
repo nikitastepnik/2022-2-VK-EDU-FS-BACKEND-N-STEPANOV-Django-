@@ -4,7 +4,7 @@ from chat_message_api.models import Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    content = serializers.CharField()
+    content = serializers.CharField(max_length=5)
     dispatch_date = serializers.DateTimeField()
     author = serializers.CharField()
     chat = serializers.CharField()
@@ -13,3 +13,4 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ('id', 'content', 'dispatch_date', 'author', 'chat', 'viewed')
+

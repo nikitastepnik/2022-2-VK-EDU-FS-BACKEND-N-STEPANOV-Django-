@@ -7,8 +7,8 @@ from chat_user.models import User
 # psql -U python_backend_course -d chat_db
 
 class Chat(models.Model):
-    topic = models.TextField("Название", default="Базовое название")
-    description = models.TextField("Описание", default="Базовое описание")
+    topic = models.TextField("Название", default="Базовое название", max_length=100)
+    description = models.TextField("Описание", default="Базовое описание", max_length=100)
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     users = models.ManyToManyField(User, verbose_name="Пользователи чата",
                                    related_name="chat_users")
