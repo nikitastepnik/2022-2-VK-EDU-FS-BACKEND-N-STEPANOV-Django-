@@ -131,3 +131,4 @@ dmypy.json
 /./pyvenv.cfg
 /./bin/
 
+/chat_project/chat_auth/google_auth/*

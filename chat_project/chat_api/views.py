@@ -4,11 +4,13 @@ from rest_framework import viewsets
 
 from chat_api.models import Chat
 from chat_api.serializers import ChatSerializer
+from chat_auth.views import my_login_required
 from chat_message_api.serializers import MessageSerializer
 from chat_user.models import User
 
 
 class ChatViewSet(viewsets.ViewSet):
+    @my_login_required
     def partial_update_add_user_to_chat(self, request):
         user_id = int(request.POST.get("user_id"))
         chat_id = request.POST.get("chat_id")
@@ -23,6 +25,7 @@ class ChatViewSet(viewsets.ViewSet):
         return JsonResponse({"added": False, "info": f"user with {user_id} "
                                                      f"has already been added to chat with id {chat_id}"}, status=400)
 
+    @my_login_required
     def create(self, request):
         users_id = request.data.pop("users_in_chat")
 
@@ -39,21 +42,26 @@ class ChatViewSet(viewsets.ViewSet):
 
         return JsonResponse({"created": True}, status=201)
 
+    @my_login_required
     def destroy(self, request, pk):
-        if pk and get_object_or_404(Chat, id=pk):
-            Chat(id=pk).delete()
+        chat = get_object_or_404(Chat, id=pk)
+        if request.user.id in chat.admin:
+            chat.delete()
+
             return JsonResponse({"deleted": True, "id_deleted_chat": pk}, status=200)
 
-        return JsonResponse({"deleted": False}, status=400)
+        return JsonResponse({"deleted": False, "msg_error": "You are not admin of this chat, you cannot destroy it!"},
+                            status=400)
 
+    @my_login_required
     def delete_member_from_chat(self, request):
         user_id = request.GET.get("user_id")
         chat_id = request.GET.get("chat_id")
         user_obj = get_object_or_404(User, id=user_id)
         chat_obj = get_object_or_404(Chat, id=chat_id)
-
-        if user_id in [item["id"] for item in chat_obj.users.values()]:
+        if request.user.id in chat_obj.admin and user_id in [item["id"] for item in chat_obj.users.values()]:
             chat_obj.users.remove(user_obj.id)
+
             return JsonResponse({"deleted": True, "info": f"user with {user_id} "
                                                           f"was deleted from chat with id {chat_id}"}, status=200)
 
@@ -78,6 +86,7 @@ class ChatViewSet(viewsets.ViewSet):
 
         return JsonResponse({"items": chats_data}, status=200)
 
+    @my_login_required
     def list_user_chats(self, request, user_pk):
         chats_user = get_object_or_404(User, id=user_pk).chat_users
 
@@ -88,10 +97,14 @@ class ChatViewSet(viewsets.ViewSet):
 
         return JsonResponse({"items": chats_user.data}, status=200)
 
+    @my_login_required
     def update(self, request, pk):
-        if get_object_or_404(Chat, id=pk):
+        chat = get_object_or_404(Chat, id=pk)
+        if request.user.id in chat.admin:
             Chat.objects.filter(id=pk).update(**request.POST)
 
             return JsonResponse({"edited": True, **request.POST}, status=200)
 
-        return JsonResponse({"edited": False}, status=400)
+        return JsonResponse(
+            {"edited": False, "msgError": "You can not update content of this chat! You are not admin of it!"},
+            status=400)
