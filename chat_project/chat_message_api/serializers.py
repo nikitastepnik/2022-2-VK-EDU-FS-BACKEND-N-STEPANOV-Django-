@@ -4,7 +4,7 @@ from chat_message_api.models import Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    content = serializers.CharField(max_length=5)
+    content = serializers.CharField()
     dispatch_date = serializers.DateTimeField()
     author = serializers.CharField()
     chat = serializers.CharField()

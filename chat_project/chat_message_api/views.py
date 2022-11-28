@@ -17,7 +17,6 @@ class MessageViewSet(viewsets.ViewSet):
 
         user = get_object_or_404(User, id=author_id)
         chat = get_object_or_404(Chat, id=chat_id)
-
         if content and user.id in [item["id"] for item in chat.users.values()]:
             Message.objects.create(**{k: request.POST.get(k) for k in request.POST})
             user.last_seen_at = timezone.now()

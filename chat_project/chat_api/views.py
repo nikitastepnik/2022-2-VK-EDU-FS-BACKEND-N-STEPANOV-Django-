@@ -4,6 +4,7 @@ from rest_framework import viewsets
 
 from chat_api.models import Chat
 from chat_api.serializers import ChatSerializer
+from chat_message_api.serializers import MessageSerializer
 from chat_user.models import User
 
 
@@ -58,7 +59,7 @@ class ChatViewSet(viewsets.ViewSet):
 
         return JsonResponse({"deleted": False}, status=400)
 
-    def retrieve(request, pk):
+    def retrieve(self, request, pk):
         chat_model = get_object_or_404(Chat, id=pk)
         chat = ChatSerializer(chat_model)
 
@@ -66,8 +67,16 @@ class ChatViewSet(viewsets.ViewSet):
 
     def list_all_chats(self, request):
         chats = ChatSerializer(Chat.objects.all(), many=True)
+        chats_data = list(chats.data)
 
-        return JsonResponse({"items": chats.data}, status=200)
+        for idx, elem in enumerate(Chat.objects.all()):
+            messages_in_chat = MessageSerializer(elem.messages_in_chat,
+                                                 many=True)
+            chats_data[idx]["last_message"] = messages_in_chat.data[len(messages_in_chat.data) - 1]
+
+        chats_data.sort(key=lambda x: x["last_message"]["dispatch_date"], reverse=True)
+
+        return JsonResponse({"items": chats_data}, status=200)
 
     def list_user_chats(self, request, user_pk):
         chats_user = get_object_or_404(User, id=user_pk).chat_users
