@@ -27,6 +27,6 @@ urlpatterns = [
     path('user/', include('chat_user.urls')),
     path('ui/', include('chat_ui.urls')),
     path('login/', chat_auth_views.login, name='login'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('logout/', chat_auth_views.logout, name='logout'),
     path('social-auth/', include('social_django.urls', namespace='social')),
 ]
