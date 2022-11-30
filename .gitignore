@@ -132,3 +132,5 @@ dmypy.json
 /./bin/
 
 /chat_project/chat_auth/google_auth/*
+/chat_project/messenger/credentials/*
+/chat_project/config.json

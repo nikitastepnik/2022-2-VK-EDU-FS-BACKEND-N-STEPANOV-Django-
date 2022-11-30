@@ -7,6 +7,7 @@ from chat_api.models import Chat
 from chat_auth.views import my_login_required
 from chat_message_api.models import Message
 from chat_message_api.serializers import MessageSerializer
+from chat_message_api.utils import publish_message_to_websocket
 from chat_user.models import User
 
 
@@ -24,7 +25,7 @@ class MessageViewSet(viewsets.ViewSet):
             user.save()
             chat.count_messages = len(chat.messages_in_chat.values())
             chat.save()
-
+            publish_message_to_websocket(content)
             return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)
 
         return JsonResponse({"created": False}, status=400)

@@ -4,13 +4,13 @@ from rest_framework import viewsets
 
 from chat_api.models import Chat
 from chat_api.serializers import ChatSerializer
+from chat_api.tasks import send_admin_email
 from chat_auth.views import my_login_required
 from chat_message_api.serializers import MessageSerializer
 from chat_user.models import User
 
 
 class ChatViewSet(viewsets.ViewSet):
-    @my_login_required
     def partial_update_add_user_to_chat(self, request):
         user_id = int(request.POST.get("user_id"))
         chat_id = request.POST.get("chat_id")
@@ -19,6 +19,7 @@ class ChatViewSet(viewsets.ViewSet):
 
         if user_id not in [user["id"] for user in chat_obj.users.values()]:
             chat_obj.users.add(user_obj.id)
+            send_admin_email(chat_id, user_id)
             return JsonResponse({"added": True, "info": f"user with {user_id} was added to chat with id {chat_id}"},
                                 status=200)
 

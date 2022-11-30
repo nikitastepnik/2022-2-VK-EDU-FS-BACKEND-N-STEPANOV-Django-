@@ -1,7 +1,6 @@
-from django.contrib.auth import views
-from django.contrib.auth.views import logout_then_login, LogoutView
+from django.contrib.auth.views import LogoutView
 from django.core.handlers.wsgi import WSGIRequest
-from django.shortcuts import render, resolve_url
+from django.shortcuts import render
 from django.utils import timezone
 from rest_framework.request import Request
 
