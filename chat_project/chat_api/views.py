@@ -81,8 +81,10 @@ class ChatViewSet(viewsets.ViewSet):
         for idx, elem in enumerate(Chat.objects.all()):
             messages_in_chat = MessageSerializer(elem.messages_in_chat,
                                                  many=True)
-            chats_data[idx]["last_message"] = messages_in_chat.data[len(messages_in_chat.data) - 1]
+            if len(messages_in_chat.data) > 0:
+                chats_data[idx]["last_message"] = messages_in_chat.data[len(messages_in_chat.data) - 1]
 
+        chats_data = [chat for chat in chats_data if chat["count_messages"] > 0]
         chats_data.sort(key=lambda x: x["last_message"]["dispatch_date"], reverse=True)
 
         return JsonResponse({"items": chats_data}, status=200)

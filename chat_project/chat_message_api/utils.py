@@ -3,19 +3,21 @@ import json
 import requests
 
 
-def publish_message_to_websocket(text_msg, channel="chat"):
+def publish_message_to_websocket(messages, channel):
     command = {
         "method": "publish",
         "params": {
             "channel": channel,
-            "data": text_msg
+            "data": messages
         }
     }
 
-    parsed_config = parse_json_config('config.json')
+    parsed_config = parse_json_config(
+        '/Users/ni-n-stepanov/PycharmProjects/2022-2-VK-EDU-FS-BACKEND-N-STEPANOV/config.json')
     api_key = parsed_config['api_key']
 
     data = json.dumps(command)
+
     headers = {'Content-type': 'application/json', 'Authorization': 'apikey ' + api_key}
     requests.post("http://localhost:8000/api", data=data, headers=headers)
 
