@@ -17,7 +17,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 from chat_auth import views as chat_auth_views
-from . import views
 
 urlpatterns = [
     path('', chat_auth_views.home, name='home'),
@@ -25,9 +24,7 @@ urlpatterns = [
     path('chat/', include('chat_api.urls')),
     path('message/', include('chat_message_api.urls')),
     path('user/', include('chat_user.urls')),
-    path('ui/', include('chat_ui.urls')),
     path('login/', chat_auth_views.login, name='login'),
     path('logout/', chat_auth_views.logout, name='logout'),
     path('social-auth/', include('social_django.urls', namespace='social')),
-    path('index/', views.index)
 ]
