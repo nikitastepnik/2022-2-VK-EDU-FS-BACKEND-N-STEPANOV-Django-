@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 from chat_auth.google_auth import credentials
-from .credentials import secret_key, chat_db_credentials
+from .credentials import secret_key, chat_db_credentials, email_credentials
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'chat_message_api',
     'chat_ui',
     'chat_user',
-    'social_django'
+    'social_django',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -63,9 +64,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = (
+CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-)
+]
 
 ROOT_URLCONF = 'messenger.urls'
 
@@ -153,3 +154,14 @@ LOGOUT_REDIRECT_URL = 'login'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = credentials.GOOGLE_KEY
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = credentials.GOOGLE_SECRET
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+
+EMAIL_HOST_USER = email_credentials.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = email_credentials.EMAIL_HOST_PASSWORD
+
+ADMINS = ['nik-stepanov-2001@bk.ru']

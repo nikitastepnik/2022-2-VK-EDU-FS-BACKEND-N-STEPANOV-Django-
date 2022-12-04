@@ -7,6 +7,7 @@ from chat_api.models import Chat
 from chat_auth.views import my_login_required
 from chat_message_api.models import Message
 from chat_message_api.serializers import MessageSerializer
+from chat_message_api.utils import publish_message_to_websocket
 from chat_user.models import User
 
 
@@ -24,7 +25,9 @@ class MessageViewSet(viewsets.ViewSet):
             user.save()
             chat.count_messages = len(chat.messages_in_chat.values())
             chat.save()
-
+            # publish_message_to_websocket(content, "chat")
+            publish_message_to_websocket(MessageSerializer(chat.messages_in_chat,
+                                                           many=True).data, channel="chat.id " + chat_id)
             return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)
 
         return JsonResponse({"created": False}, status=400)
@@ -37,7 +40,10 @@ class MessageViewSet(viewsets.ViewSet):
         if (request.user.id in chat.users and len(chat.users) == 2) or request.user.id in chat.admin:
             Message(id=msg_obj.id).delete()
             chat.count_messages -= 1
-            chat.save()
+            if chat.count_messages == 0:
+                chat.delete()
+            else:
+                chat.save()
 
             return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
 

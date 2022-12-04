@@ -59,7 +59,7 @@ class TestTicTagGame(unittest.TestCase):
         for elem in params:
             with self.subTest(elem=elem):
                 self.assertRaises(InvalidCountInputArgs,
-                lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
+                                  lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
 
     def test_validate_input_not_digit_input_args_dimension(self):
         """Тест валидации нечисловых типов входных аргументов"""
@@ -67,7 +67,7 @@ class TestTicTagGame(unittest.TestCase):
         for elem in params:
             with self.subTest(elem=elem):
                 self.assertRaises(InvalidTypesInputArgs,
-                lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
+                                  lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
 
     def test_validate_invalid_range_input_args_dimension(self):
         """Тест валидации невалидных значений размерности игрового поля"""
@@ -75,7 +75,7 @@ class TestTicTagGame(unittest.TestCase):
         for elem in params:
             with self.subTest(elem=elem):
                 self.assertRaises(InvalidDimensionRange,
-                lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
+                                  lambda: self.test_game_obj.validate_input(elem, validate_type='dimension'))
 
     def test_validate_invalid_game_type_input_args(self):
         """Тест невалидного типа игры"""
@@ -83,7 +83,7 @@ class TestTicTagGame(unittest.TestCase):
         for elem in params:
             with self.subTest(elem=elem):
                 self.assertRaises(InvalidGameType,
-                lambda: self.test_game_obj.validate_input(elem, validate_type='game_type'))
+                                  lambda: self.test_game_obj.validate_input(elem, validate_type='game_type'))
 
     def test_check_winner_str_scenario(self):
         """Тест выигрышного сценария - строка"""
