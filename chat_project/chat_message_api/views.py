@@ -4,6 +4,7 @@ from django.utils import timezone
 from rest_framework import viewsets
 
 from chat_api.models import Chat
+from chat_auth.views import my_login_required
 from chat_message_api.models import Message
 from chat_message_api.serializers import MessageSerializer
 from chat_user.models import User
@@ -28,32 +29,41 @@ class MessageViewSet(viewsets.ViewSet):
 
         return JsonResponse({"created": False}, status=400)
 
+    @my_login_required
     def destroy(self, request, pk):
         msg_obj = get_object_or_404(Message, id=pk)
         chat = get_object_or_404(Chat, id=msg_obj.chat_id)
-        Message(id=msg_obj.id).delete()
-        chat.count_messages -= 1
-        chat.save()
 
-        return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
+        if (request.user.id in chat.users and len(chat.users) == 2) or request.user.id in chat.admin:
+            Message(id=msg_obj.id).delete()
+            chat.count_messages -= 1
+            chat.save()
 
+            return JsonResponse({"deleted": True, "id_deleted_message": msg_obj.id}, status=200)
+
+        return JsonResponse({"deleted": False, "msg_error": "You can not do it! You are not admin of chat or author"},
+                            status=400)
+
+    @my_login_required
     def partial_update_content(self, request, pk):
-        if pk and get_object_or_404(Message, id=pk):
+        msg_obj = get_object_or_404(Message, id=pk)
+        if request.user.username == msg_obj.author and pk and get_object_or_404(Message, id=pk):
             Message.objects.filter(id=pk).update(**request.data)
             return JsonResponse({"edited": True, **request.data}, status=200)
 
         return JsonResponse({"edited": False}, status=400)
 
+    @my_login_required
     def retrieve_without_filters(self, request, pk):
         msg_model = get_object_or_404(Message, id=pk)
         message = MessageSerializer(msg_model)
 
         return JsonResponse({"msg_info": message.data}, status=200)
 
+    @my_login_required
     def partial_update_status(self, request, pk):
         msg_model = get_object_or_404(Message, id=pk)
-
-        if not msg_model.viewed:
+        if request.user.username == msg_model.author and not msg_model.viewed:
             msg_model.viewed = True
             msg_model.save()
 
@@ -61,6 +71,7 @@ class MessageViewSet(viewsets.ViewSet):
 
         return JsonResponse({"viewed": False, "info": f"message with id {msg_model.id} is viewed already"}, status=400)
 
+    @my_login_required
     def retrieve_filter_user_and_chat(self, request):
         user_id = request.GET.get("user_id")
         chat_id = request.GET.get("chat_id")
