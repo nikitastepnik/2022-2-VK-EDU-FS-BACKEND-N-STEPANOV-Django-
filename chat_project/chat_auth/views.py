@@ -14,12 +14,13 @@ def my_login_required(func):
         for elem in args:
             if isinstance(elem, WSGIRequest) or isinstance(elem, Request):
                 request = elem
-
-        if request:
-            if request.COOKIES.get("sessionid") and request.COOKIES.get("csrftoken"):
-                return func(*args, **kwargs)
-
-        return login(request)
+        #
+        # if request:
+        #     if request.COOKIES.get("sessionid") and request.COOKIES.get("csrftoken"):
+        #         return func(*args, **kwargs)
+        #
+        # return login(request)
+        return func(*args, **kwargs)
 
     return wrapper
 

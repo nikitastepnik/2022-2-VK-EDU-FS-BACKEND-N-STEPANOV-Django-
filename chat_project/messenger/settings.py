@@ -27,7 +27,7 @@ SECRET_KEY = secret_key.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
 
 # Application definition
 
@@ -98,8 +98,8 @@ DATABASES = {
         'NAME': 'chat_db',
         'USER': chat_db_credentials.USER_CHAT_DB_POSTGRESQL,
         'PASSWORD': chat_db_credentials.PASSWORD_USER_CHAT_DB_POSTGRESQL,
-        'HOST': 'localhost',
-        'PORT': '',
+        'HOST': os.environ.get("SQL_HOST", 'postgres'),
+        'PORT': '5432',
     }
 }
 
@@ -148,7 +148,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'http://localhost:3000/2022-2-VK-EDU-FS-FRONTEND-N-STEPANOV#/chats'
 LOGOUT_URL = 'logout'
 LOGOUT_REDIRECT_URL = 'login'
 
