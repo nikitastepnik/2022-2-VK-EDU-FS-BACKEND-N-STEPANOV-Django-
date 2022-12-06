@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'chat_api',
     'chat_message_api',
-    'chat_ui',
     'chat_user',
     'social_django',
     'django_celery_beat'
@@ -67,6 +66,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
 ]
+CORS_ALLOW_HEADERS = ['X-XSRF-TOKEN']
 
 ROOT_URLCONF = 'messenger.urls'
 

@@ -7,7 +7,7 @@ from chat_api.models import Chat
 from chat_auth.views import my_login_required
 from chat_message_api.models import Message
 from chat_message_api.serializers import MessageSerializer
-from chat_message_api.utils import publish_message_to_websocket
+from chat_message_api.utils import publish_message_to_websocket, clear_html_tags
 from chat_user.models import User
 
 
@@ -15,17 +15,16 @@ class MessageViewSet(viewsets.ViewSet):
     def create(self, request):
         chat_id = request.POST.get("chat_id")
         author_id = request.POST.get("author_id")
-        content = request.POST.get("content")
+        content = clear_html_tags(request.POST.get("content"))
 
         user = get_object_or_404(User, id=author_id)
         chat = get_object_or_404(Chat, id=chat_id)
         if content and user.id in [item["id"] for item in chat.users.values()]:
-            Message.objects.create(**{k: request.POST.get(k) for k in request.POST})
+            Message.objects.create(chat_id=chat_id, author_id=author_id, content=content)
             user.last_seen_at = timezone.now()
             user.save()
             chat.count_messages = len(chat.messages_in_chat.values())
             chat.save()
-            # publish_message_to_websocket(content, "chat")
             publish_message_to_websocket(MessageSerializer(chat.messages_in_chat,
                                                            many=True).data, channel="chat.id " + chat_id)
             return JsonResponse({"created": True, **{k: request.POST.get(k) for k in request.POST}}, status=201)

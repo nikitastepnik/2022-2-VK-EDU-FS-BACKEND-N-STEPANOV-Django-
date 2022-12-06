@@ -1,6 +1,7 @@
 import json
 
 import requests
+from bs4 import BeautifulSoup
 
 
 def publish_message_to_websocket(messages, channel):
@@ -27,3 +28,10 @@ def parse_json_config(json_file):
         data = json.load(json_data)
 
     return data
+
+
+def clear_html_tags(user_input):
+    soup = BeautifulSoup(user_input, "html.parser")
+    text_input = soup.get_text()
+
+    return text_input
