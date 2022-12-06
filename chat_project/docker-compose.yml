@@ -1,0 +1,110 @@
+version: '2.1'
+
+networks:
+  my_network:
+    external: true
+    name: my_network
+
+
+services:
+  redis:
+    image: redis:5.0.3-alpine
+    container_name: redis
+    restart: always
+    expose:
+      - '6379'
+    ports:
+      - '6379:6379'
+    networks:
+      - my_network
+  postgres:
+    image: postgres:12.0-alpine
+    environment:
+      - POSTGRES_USER=python_backend_course
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=chat_db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U python_backend_course -d chat_db" ]
+      timeout: 1s
+      retries: 30
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./postgres_data:/var/lib/postgresql/data/"
+    networks:
+      - my_network
+    container_name: postgres
+  celery:
+    container_name: celery
+    build: .
+    networks:
+      - my_network
+    command: celery -A messenger worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - postgres
+      - redis
+    links:
+      - redis
+  celery-beat:
+    container_name: celery-beat
+    build: .
+    networks:
+      - my_network
+    command: celery -A messenger beat -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - postgres
+      - redis
+    links:
+      - redis
+  celery-flower:
+    container_name: celery-flower
+    build: .
+    restart: always
+    networks:
+      - my_network
+    ports:
+      - 5555:5555
+    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    depends_on:
+      celery:
+        condition: service_started
+      redis:
+        condition: service_started
+  centrifugo:
+    container_name: centrifugo
+    image: centrifugo/centrifugo:latest
+    volumes:
+      - ./config.json:/centrifugo/config.json
+    networks:
+      - my_network
+    command: centrifugo -c config.json --client_insecure
+    ports:
+      - 8000:8000
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+  django_app:
+    networks:
+      - my_network
+    ports:
+      - "9000:7000"
+    container_name: django_app
+    build:
+      context: .
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:7000"
+    env_file:
+      - ./.env.dev
+    volumes:
+        - ./log_current_online.txt:/log_current_online.txt
+    depends_on:
+      postgres:
+        condition: service_healthy
+      celery:
+        condition: service_started
+      centrifugo:
+        condition: service_started
