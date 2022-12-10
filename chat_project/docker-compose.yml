@@ -99,8 +99,6 @@ services:
     command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:7000"
     env_file:
       - ./.env.dev
-    volumes:
-        - ./log_current_online.txt:/log_current_online.txt
     depends_on:
       postgres:
         condition: service_healthy

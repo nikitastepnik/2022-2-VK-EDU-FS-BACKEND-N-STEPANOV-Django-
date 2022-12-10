@@ -65,8 +65,9 @@ AUTHENTICATION_BACKENDS = (
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
+    'http://127.0.0.1:3000'
 ]
-CORS_ALLOW_HEADERS = ['X-XSRF-TOKEN']
+CORS_ALLOW_HEADERS = ['X-XSRF-TOKEN', 'X-AUTH-HEADER']
 
 ROOT_URLCONF = 'messenger.urls'
 
@@ -98,7 +99,7 @@ DATABASES = {
         'NAME': 'chat_db',
         'USER': chat_db_credentials.USER_CHAT_DB_POSTGRESQL,
         'PASSWORD': chat_db_credentials.PASSWORD_USER_CHAT_DB_POSTGRESQL,
-        'HOST': os.environ.get("SQL_HOST", 'postgres'),
+        'HOST': os.environ.get("SQL_HOST", ''),
         'PORT': '5432',
     }
 }
@@ -148,9 +149,9 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'http://localhost:3000/2022-2-VK-EDU-FS-FRONTEND-N-STEPANOV#/chats'
+LOGIN_REDIRECT_URL = 'http://127.0.0.1:9000/user_auth_success'
 LOGOUT_URL = 'logout'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'http://127.0.0.1:3000/2022-2-VK-EDU-FS-FRONTEND-N-STEPANOV#/'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = credentials.GOOGLE_KEY
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = credentials.GOOGLE_SECRET

@@ -1,7 +1,10 @@
 from django.contrib.auth.views import LogoutView
 from django.core.handlers.wsgi import WSGIRequest
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.generic import RedirectView
+from rest_framework.decorators import api_view
 from rest_framework.request import Request
 
 from chat_user.models import User
@@ -14,12 +17,11 @@ def my_login_required(func):
         for elem in args:
             if isinstance(elem, WSGIRequest) or isinstance(elem, Request):
                 request = elem
-        #
-        # if request:
-        #     if request.COOKIES.get("sessionid") and request.COOKIES.get("csrftoken"):
-        #         return func(*args, **kwargs)
-        #
-        # return login(request)
+
+        if request:
+            if request.COOKIES.get("sessionid") and request.COOKIES.get("csrftoken") and request.user.is_authenticated:
+                return func(*args, **kwargs)
+
         return func(*args, **kwargs)
 
     return wrapper
@@ -36,7 +38,27 @@ def login(request):
     return render(request, 'login.html')
 
 
+@my_login_required
 def logout(request):
-    User.objects.filter(id=request.user.id).update(is_online=False, last_seen_at=timezone.now())
+    User.objects.filter(id=request.user.id).update(is_online=False, is_user_logged_in=False, csrf_token="",
+                                                   last_seen_at=timezone.now())
 
-    return LogoutView.as_view(next_page=settings.LOGIN_URL)(request)
+    return LogoutView.as_view(next_page=settings.LOGOUT_REDIRECT_URL)(request)
+
+
+@api_view(['GET'])
+def user_auth_success(request):
+    User.objects.filter(id=request.user.id).update(is_online=True, is_user_logged_in=True, last_seen_at=timezone.now(),
+                                                   csrf_token=request.COOKIES['csrftoken'])
+    return RedirectView.as_view(
+        url=f'http://127.0.0.1:3000/2022-2-VK-EDU-FS-FRONTEND-N-STEPANOV#/')(request)
+
+
+@api_view(['GET'])
+def user_auth(request):
+    if not request.headers["X-XSRF-TOKEN"]:
+        return HttpResponse(status=404)
+    is_user_logged_in = User.objects.filter(csrf_token=request.headers["X-XSRF-TOKEN"]).values()[0]["is_user_logged_in"]
+    user_id = User.objects.filter(csrf_token=request.headers["X-XSRF-TOKEN"]).values()[0]["id"]
+
+    return JsonResponse({'is_user_logged_in': is_user_logged_in, 'user_id': user_id})
