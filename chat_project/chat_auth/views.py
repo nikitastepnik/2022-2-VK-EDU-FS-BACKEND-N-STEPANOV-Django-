@@ -29,8 +29,6 @@ def my_login_required(func):
 
 @my_login_required
 def home(request):
-    print(1234)
-    print(12344)
     User.objects.filter(id=request.user.id).update(is_online=True, last_seen_at=timezone.now())
 
     return render(request, 'home.html')
