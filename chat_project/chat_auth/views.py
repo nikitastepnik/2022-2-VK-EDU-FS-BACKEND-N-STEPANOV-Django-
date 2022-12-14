@@ -19,23 +19,25 @@ def my_login_required(func):
                 request = elem
 
         if request:
-            if request.COOKIES.get("sessionid") and request.COOKIES.get("csrftoken") and request.user.is_authenticated:
+            if User.objects.filter(csrf_token=request.request.COOKIES.get("csrftoken")).values()[0]["is_user_logged_in"]:
                 return func(*args, **kwargs)
 
-        return func(*args, **kwargs)
+        return login(request)
 
     return wrapper
 
 
 @my_login_required
 def home(request):
+    print(1234)
     User.objects.filter(id=request.user.id).update(is_online=True, last_seen_at=timezone.now())
 
     return render(request, 'home.html')
 
 
 def login(request):
-    return render(request, 'login.html')
+    return RedirectView.as_view(
+        url=f'http://127.0.0.1:3000/2022-2-VK-EDU-FS-FRONTEND-N-STEPANOV#/')(request)
 
 
 @my_login_required
