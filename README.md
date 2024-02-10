@@ -1,3 +1,3 @@
 # 2022-02-VK-EDU-FS-BACKEND-N-STEPANOV
 
-Домашние работы блока Backend (Python) курса VK Fullstack-разработка
+Homework of the Backend (Python) block of the VK Fullstack development course
